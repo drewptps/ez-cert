@@ -9,8 +9,7 @@ data/
 .idea/
 *.swp
 
-# Go build output
-ez-cert
+# Go build output (compiled binary at repo root)
 /ez-cert
 
 # Claude Code
