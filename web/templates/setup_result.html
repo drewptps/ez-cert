@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>EZ-CERT Setup Complete</title>
+  <link rel="icon" href="/static/favicon.ico">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #11161d;
+      --panel-muted: #161c24;
+      --border: #26303b;
+      --text: #e5e7eb;
+      --text-muted: #98a2b3;
+      --heading: #f3f4f6;
+      --primary: #d1d5db;
+      --primary-text: #0b0f14;
+      --primary-hover: #e5e7eb;
+      --button-secondary-bg: #151b23;
+      --button-secondary-hover: #1b2430;
+      --warn-bg: #241b0d;
+      --warn-border: #8a5a00;
+      --warn-text: #f2c879;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    .app-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .app-title {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .app-title img {
+      height: 160px;
+      display: block;
+    }
+
+    .app-bar-right {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      color: var(--heading);
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .notice {
+      padding: 14px 16px;
+      border: 1px solid var(--warn-border);
+      background: var(--warn-bg);
+      color: var(--warn-text);
+      border-radius: var(--radius);
+      margin: 20px 0;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      background: var(--panel);
+      margin-top: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #0f141b;
+      border: 1px solid #364152;
+      border-radius: 8px;
+      padding: 12px;
+      overflow-x: auto;
+      color: #dbe2ea;
+    }
+
+    .button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 14px;
+      background: var(--primary);
+      color: var(--primary-text);
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid var(--primary);
+      font-weight: bold;
+    }
+
+    .button:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .button-secondary {
+      background: var(--button-secondary-bg);
+      color: var(--text);
+      border-color: var(--border);
+      margin-top: 0;
+    }
+
+    .button-secondary:hover {
+      background: var(--button-secondary-hover);
+      border-color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="app-bar">
+      <div class="app-bar-left">
+        <a href="/" class="app-title"><img src="/static/logo.png" alt="EZ-CERT"></a>
+      </div>
+
+      <div class="app-bar-right">
+        <a class="button button-secondary" href="/">Back to List</a>
+      </div>
+    </div>
+
+    <h1>PKI created</h1>
+    <div class="subtitle">Your initial root and intermediate have been generated.</div>
+
+    <div class="notice">
+      <strong>Save the root private key now.</strong> EZ-CERT does not store it.
+    </div>
+
+    <div class="panel">
+      <p><strong>Root CA:</strong> {{.RootCommonName}}</p>
+      <p><strong>Stored intermediate ID:</strong> {{.IntermediateID}}</p>
+      <p><strong>Intermediate Common Name:</strong> {{.IntermediateSubject}}</p>
+    </div>
+
+    <div class="panel">
+      <h2>Root Certificate</h2>
+      <pre>{{.RootCertPEM}}</pre>
+    </div>
+
+    <div class="panel">
+      <h2>Root Private Key</h2>
+      <pre>{{.RootKeyPEM}}</pre>
+    </div>
+
+    <a class="button" href="/">Go to certificate list</a>
+  </div>
+</body>
+</html>

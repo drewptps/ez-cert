@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Generate Certificate</title>
+  <link rel="icon" href="/static/favicon.ico">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #11161d;
+      --border: #26303b;
+      --text: #e5e7eb;
+      --text-muted: #98a2b3;
+      --heading: #f3f4f6;
+      --primary: #d1d5db;
+      --primary-text: #0b0f14;
+      --primary-hover: #e5e7eb;
+      --button-secondary-bg: #151b23;
+      --button-secondary-hover: #1b2430;
+      --success-bg: #0f1f16;
+      --success-border: #1f6f43;
+      --success-text: #8fe0af;
+      --danger-bg: #2a1212;
+      --danger-border: #8f3434;
+      --danger-text: #f2aaaa;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    .app-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .app-title {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .app-title img {
+      height: 160px;
+      display: block;
+    }
+
+    .app-bar-right {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      color: var(--heading);
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      color: var(--heading);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font: inherit;
+      border: 1px solid #364152;
+      border-radius: 8px;
+      background: #0f141b;
+      color: var(--text);
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #64748b;
+    }
+
+    textarea {
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    textarea.monospace {
+      min-height: 180px;
+      font-family: monospace;
+    }
+
+    .button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 14px;
+      background: var(--primary);
+      color: var(--primary-text);
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid var(--primary);
+      cursor: pointer;
+      font: inherit;
+      font-weight: bold;
+    }
+
+    .button:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .button-secondary {
+      background: var(--button-secondary-bg);
+      color: var(--text);
+      border-color: var(--border);
+      margin-top: 0;
+    }
+
+    .button-secondary:hover {
+      background: var(--button-secondary-hover);
+      border-color: #334155;
+    }
+
+    .error {
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger-text);
+      border-radius: 8px;
+    }
+
+    .success {
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--success-text);
+      border-radius: 8px;
+    }
+
+    .hint {
+      margin-top: 6px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 24px 14px 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="app-bar">
+      <div class="app-bar-left">
+        <a href="/" class="app-title"><img src="/static/logo.png" alt="EZ-CERT"></a>
+      </div>
+
+      <div class="app-bar-right">
+        <a class="button button-secondary" href="/">Back to List</a>
+      </div>
+    </div>
+
+    <h1>Generate Certificate</h1>
+    <div class="subtitle">Choose a certificate type, then fill in the fields required for that certificate.</div>
+
+    <div class="panel">
+      {{if .Error}}
+        <div class="error">{{.Error}}</div>
+      {{end}}
+
+      {{if .Success}}
+        <div class="success">{{.Success}}</div>
+      {{end}}
+
+      <form method="post" action="/generate">
+        <label for="cert_type">Certificate Type</label>
+        <select
+          id="cert_type"
+          name="cert_type"
+          required
+          onchange="window.location='/generate?cert_type=' + encodeURIComponent(this.value)"
+        >
+          <option value="leaf" {{if eq .Form.CertType "leaf"}}selected{{end}}>Leaf Certificate</option>
+          <option value="intermediate" {{if eq .Form.CertType "intermediate"}}selected{{end}}>Intermediate CA</option>
+          <option value="root" {{if eq .Form.CertType "root"}}selected{{end}}>Root CA</option>
+        </select>
+        <div class="hint">Choose what kind of certificate to create.</div>
+
+        <label for="common_name">Common Name</label>
+        <input
+          id="common_name"
+          name="common_name"
+          type="text"
+          value="{{.Form.CommonName}}"
+          placeholder="example.internal"
+          required
+        >
+        <div class="hint">Usually the primary name of the certificate or CA.</div>
+
+        <label for="description">Description <span style="font-weight: normal; color: var(--text-muted);">(optional)</span></label>
+        <textarea
+          id="description"
+          name="description"
+          rows="3"
+          placeholder="What this certificate is used for, e.g. 'TLS for the Proxmox web UI on node pve-01'"
+        >{{.Form.Description}}</textarea>
+        <div class="hint">A plain-language note about the purpose of this certificate.</div>
+
+        {{if eq .Form.CertType "leaf"}}
+          <label for="dns_sans">DNS SANs</label>
+          <input
+            id="dns_sans"
+            name="dns_sans"
+            type="text"
+            value="{{.Form.DNSSANs}}"
+            placeholder="example.internal,www.example.internal"
+          >
+          <div class="hint">Comma-separated DNS names.</div>
+
+          <label for="ip_sans">IP SANs</label>
+          <input
+            id="ip_sans"
+            name="ip_sans"
+            type="text"
+            value="{{.Form.IPSANs}}"
+            placeholder="192.168.1.10,10.0.0.5,2001:db8::10"
+          >
+          <div class="hint">Comma-separated IPv4 or IPv6 addresses.</div>
+
+          {{if .IntermediateIssuers}}
+            <label for="issuer_id">Issuer</label>
+            <select id="issuer_id" name="issuer_id" required>
+              {{range .IntermediateIssuers}}
+                <option value="{{.ID}}" {{if eq $.Form.IssuerID .ID}}selected{{end}}>
+                  {{.CommonName}} ({{.ID}})
+                </option>
+              {{end}}
+            </select>
+            <div class="hint">Leaf certificates must be signed by an intermediate CA managed by EZ-CERT.</div>
+          {{else}}
+            <div class="hint" style="margin-top: 16px;">
+              No intermediate CAs are available. Generate an intermediate CA first.
+            </div>
+          {{end}}
+        {{end}}
+
+        {{if eq .Form.CertType "intermediate"}}
+          {{if .RootIssuers}}
+            <label for="issuer_id">Issuer Root</label>
+            <select id="issuer_id" name="issuer_id" required>
+              {{range .RootIssuers}}
+                <option value="{{.ID}}" {{if eq $.Form.IssuerID .ID}}selected{{end}}>
+                  {{.CommonName}} ({{.ID}})
+                </option>
+              {{end}}
+            </select>
+            <div class="hint">The new intermediate CA will be signed by this stored root certificate.</div>
+
+            <label for="root_key_pem">Root Private Key PEM</label>
+            <textarea
+              id="root_key_pem"
+              name="root_key_pem"
+              class="monospace"
+              placeholder="-----BEGIN ... PRIVATE KEY-----"
+              required
+            >{{.Form.RootKeyPEM}}</textarea>
+            <div class="hint">Paste the PEM-encoded root private key. It is used only for this request and is not stored.</div>
+          {{else}}
+            <div class="hint" style="margin-top: 16px;">
+              No root CAs are available. Generate a root CA first.
+            </div>
+          {{end}}
+        {{end}}
+
+        {{if eq .Form.CertType "root"}}
+          <div class="hint" style="margin-top: 16px;">
+            Root CA generation will create a new self-signed root certificate and show its private key once without storing it.
+          </div>
+        {{end}}
+
+        <label for="key_profile">Key Profile</label>
+        <select id="key_profile" name="key_profile">
+          <option value="ecdsa-p256" {{if eq .Form.KeyProfile "ecdsa-p256"}}selected{{end}}>ECDSA Curve P-256</option>
+          <option value="ecdsa-p384" {{if eq .Form.KeyProfile "ecdsa-p384"}}selected{{end}}>ECDSA Curve P-384</option>
+          <option value="ecdsa-p521" {{if eq .Form.KeyProfile "ecdsa-p521"}}selected{{end}}>ECDSA Curve P-521</option>
+          <option value="rsa-2048" {{if eq .Form.KeyProfile "rsa-2048"}}selected{{end}}>RSA 2048 bits</option>
+          <option value="rsa-3072" {{if eq .Form.KeyProfile "rsa-3072"}}selected{{end}}>RSA 3072 bits</option>
+          <option value="rsa-4096" {{if eq .Form.KeyProfile "rsa-4096"}}selected{{end}}>RSA 4096 bits</option>
+        </select>
+        <div class="hint">ECDSA P-256 is the default and usually the right choice.</div>
+
+        <label for="days">Validity (Days)</label>
+        <input
+          id="days"
+          name="days"
+          type="text"
+          value="{{.Form.Days}}"
+          placeholder="{{if eq .Form.CertType "root"}}3650{{else if eq .Form.CertType "intermediate"}}1825{{else}}365{{end}}"
+          required
+        >
+        <div class="hint">
+          {{if eq .Form.CertType "root"}}
+            3650 is the default for root CAs.
+          {{else if eq .Form.CertType "intermediate"}}
+            1825 is the default for intermediate CAs.
+          {{else}}
+            365 is the default for leaf certificates.
+          {{end}}
+        </div>
+
+        <div class="actions">
+          <button class="button" type="submit">
+            {{if eq .Form.CertType "root"}}
+              Generate Root CA
+            {{else if eq .Form.CertType "intermediate"}}
+              Generate Intermediate CA
+            {{else}}
+              Generate Leaf Certificate
+            {{end}}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

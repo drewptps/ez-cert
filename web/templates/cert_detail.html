@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Certificate Details</title>
+  <link rel="icon" href="/static/favicon.ico">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #11161d;
+      --panel-muted: #161c24;
+      --border: #26303b;
+      --border-soft: #1d2630;
+      --text: #e5e7eb;
+      --text-muted: #98a2b3;
+      --heading: #f3f4f6;
+      --primary: #d1d5db;
+      --primary-text: #0b0f14;
+      --primary-hover: #e5e7eb;
+      --button-secondary-bg: #151b23;
+      --button-secondary-hover: #1b2430;
+      --success-bg: #0f1f16;
+      --success-border: #1f6f43;
+      --success-text: #8fe0af;
+      --warn-bg: #241b0d;
+      --warn-border: #8a5a00;
+      --warn-text: #f2c879;
+      --danger-bg: #2a1212;
+      --danger-border: #8f3434;
+      --danger-text: #f2aaaa;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --radius: 10px;
+      --code-bg: #0f141b;
+      --link: #c7d2fe;
+      --link-hover: #e0e7ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    .app-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .app-title {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .app-title img {
+      height: 160px;
+      display: block;
+    }
+
+    .app-bar-right,
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--heading);
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--text-muted);
+    }
+
+    .button {
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--primary);
+      background: var(--primary);
+      color: var(--primary-text);
+      text-decoration: none;
+      font: inherit;
+      font-weight: bold;
+      box-shadow: var(--shadow);
+    }
+
+    .button:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .button-secondary {
+      background: var(--button-secondary-bg);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .button-secondary:hover {
+      background: var(--button-secondary-hover);
+      border-color: #334155;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .summary-card,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .summary-card { padding: 16px 18px; }
+
+    .summary-label {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--heading);
+    }
+
+    .panel {
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-soft);
+      background: var(--panel-muted);
+      font-weight: bold;
+      color: var(--heading);
+      flex-wrap: wrap;
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-actions .button {
+      margin: 0;
+      padding: 8px 12px;
+      font-size: 0.92rem;
+    }
+
+    .panel-body { padding: 4px 0; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+    }
+
+    .detail-label,
+    .detail-value {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+      background: #10151c;
+      font-weight: bold;
+    }
+
+    .detail-value { word-break: break-word; }
+
+    .detail-grid > :nth-last-child(-n+2) { border-bottom: 0; }
+
+    .status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      font-weight: bold;
+      border: 1px solid;
+    }
+
+    .status-valid {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border-color: var(--success-border);
+    }
+
+    .status-warning {
+      background: var(--warn-bg);
+      color: var(--warn-text);
+      border-color: var(--warn-border);
+    }
+
+    .status-expired {
+      background: var(--danger-bg);
+      color: var(--danger-text);
+      border-color: var(--danger-border);
+    }
+
+    .role {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: bold;
+      background: #18202a;
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+    }
+
+    .code {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: var(--code-bg);
+      border: 1px solid #364152;
+      font-family: monospace;
+      color: #dbe2ea;
+    }
+
+    ul.sans {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    ul.sans li { margin: 6px 0; }
+
+    .chain {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px;
+    }
+
+    .chain-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #10151c;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .chain-item:hover {
+      background: #151b23;
+      border-color: #334155;
+    }
+
+    .chain-role {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      background: #18202a;
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+    }
+
+    .chain-arrow {
+      color: #64748b;
+      font-family: monospace;
+      font-size: 1rem;
+    }
+
+    .muted { color: var(--text-muted); }
+
+    a.link {
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    a.link:hover {
+      color: var(--link-hover);
+      text-decoration: underline;
+    }
+
+    .button-danger {
+      background: var(--danger-bg);
+      color: var(--danger-text);
+      border-color: var(--danger-border);
+    }
+
+    .button-danger:hover {
+      background: #341717;
+      border-color: #a94444;
+    }
+
+    .danger-panel-note {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .inline-form {
+      margin: 0;
+    }
+
+    @media (max-width: 900px) {
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-label {
+        border-bottom: 0;
+        padding-bottom: 6px;
+      }
+      .detail-value { padding-top: 0; }
+      .detail-grid > :nth-last-child(-n+2) { border-bottom: 1px solid var(--border-soft); }
+      .detail-grid > :last-child { border-bottom: 0; }
+    }
+
+    @media (max-width: 640px) {
+      .summary { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="app-bar">
+      <div class="app-bar-left">
+        <a href="/" class="app-title"><img src="/static/logo.png" alt="EZ-CERT"></a>
+      </div>
+
+      <div class="app-bar-right">
+        <a class="button button-secondary" href="/">Back to List</a>
+      </div>
+    </div>
+
+    <div class="header">
+      <div>
+        <h1>Certificate Details</h1>
+        <div class="subtitle">
+          {{if .Cert.CommonName}}{{.Cert.CommonName}}{{else}}{{.Cert.ID}}{{end}}
+        </div>
+      </div>
+    </div>
+
+    {{if .Renewed}}
+    <div style="margin-bottom: 20px; padding: 14px 18px; background: var(--success-bg); border: 1px solid var(--success-border); border-radius: var(--radius); color: var(--success-text); font-weight: bold;">
+      Certificate renewed. New expiry: {{.Cert.NotAfter.Format "2006-01-02"}}.
+    </div>
+    {{end}}
+
+    <div class="summary">
+      <div class="summary-card">
+        <div class="summary-label">Role</div>
+        <div class="summary-value"><span class="role">{{.Cert.Role}}</span></div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Validity</div>
+        <div class="summary-value">
+          <span class="status status-{{.Cert.Status}}">{{.Cert.ValidityText}}</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Expires In</div>
+        <div class="summary-value">{{.Cert.ExpiresIn}}</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Private Key</div>
+        <div class="summary-value">{{if .Cert.HasPrivateKey}}Stored{{else}}Not Stored{{end}}</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span>General</span>
+        <div class="panel-actions">
+          <a class="button button-secondary" href="/cert/{{.Cert.ID}}/export/cert">Download Cert</a>
+          {{if .Cert.HasPrivateKey}}
+            <a class="button button-secondary" href="/cert/{{.Cert.ID}}/export/key">Download Key</a>
+          {{end}}
+          <a class="button button-secondary" href="/cert/{{.Cert.ID}}/export/bundle">Download Bundle</a>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="detail-grid">
+          <div class="detail-label">ID</div>
+          <div class="detail-value"><span class="code">{{.Cert.ID}}</span></div>
+
+          <div class="detail-label">Common Name</div>
+          <div class="detail-value">
+            {{if .Cert.CommonName}}{{.Cert.CommonName}}{{else}}<span class="muted">(none)</span>{{end}}
+          </div>
+
+          <div class="detail-label">Description</div>
+          <div class="detail-value">
+            {{if .Cert.Description}}{{.Cert.Description}}{{else}}<span class="muted">(none)</span>{{end}}
+          </div>
+
+          <div class="detail-label">Issuer</div>
+          <div class="detail-value">
+            {{if .Cert.IssuerCommonName}}{{.Cert.IssuerCommonName}}{{else}}<span class="muted">(none)</span>{{end}}
+          </div>
+
+          <div class="detail-label">Key Type</div>
+          <div class="detail-value">{{.Cert.KeyType}}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Validity</div>
+      <div class="panel-body">
+        <div class="detail-grid">
+          <div class="detail-label">Not Before</div>
+          <div class="detail-value">{{.Cert.NotBefore.Format "2006-01-02 15:04:05 MST"}}</div>
+
+          <div class="detail-label">Not After</div>
+          <div class="detail-value">{{.Cert.NotAfter.Format "2006-01-02 15:04:05 MST"}}</div>
+
+          <div class="detail-label">Expires In</div>
+          <div class="detail-value">{{.Cert.ExpiresIn}}</div>
+
+          <div class="detail-label">Status</div>
+          <div class="detail-value">
+            <span class="status status-{{.Cert.Status}}">{{.Cert.ValidityText}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Names</div>
+      <div class="panel-body">
+        <div class="detail-grid">
+          <div class="detail-label">DNS SANs</div>
+          <div class="detail-value">
+            {{if .Cert.DNSSANs}}
+              <ul class="sans">
+                {{range .Cert.DNSSANs}}
+                  <li>{{.}}</li>
+                {{end}}
+              </ul>
+            {{else}}
+              <span class="muted">(none)</span>
+            {{end}}
+          </div>
+          <div class="detail-label">IP SANs</div>
+          <div class="detail-value">
+            {{if .Cert.IPSANs}}
+              <ul class="sans">
+                {{range .Cert.IPSANs}}
+                  <li>{{.}}</li>
+                {{end}}
+              </ul>
+            {{else}}
+              <span class="muted">(none)</span>
+            {{end}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Certificate Chain</div>
+      <div class="chain">
+        {{range $index, $link := .Cert.Chain}}
+          {{if gt $index 0}}
+            <span class="chain-arrow">↓</span>
+          {{end}}
+          <a class="chain-item" href="/cert/{{$link.ID}}">
+            <span>{{if $link.CommonName}}{{$link.CommonName}}{{else}}{{$link.ID}}{{end}}</span>
+            <span class="chain-role">{{$link.Role}}</span>
+          </a>
+        {{end}}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Key Identifiers</div>
+      <div class="panel-body">
+        <div class="detail-grid">
+          <div class="detail-label">Subject Key Identifier</div>
+          <div class="detail-value">
+            {{if .Cert.SubjectKeyID}}
+              <span class="code">{{.Cert.SubjectKeyID}}</span>
+            {{else}}
+              <span class="muted">(none)</span>
+            {{end}}
+          </div>
+
+          <div class="detail-label">Authority Key Identifier</div>
+          <div class="detail-value">
+            {{if .Cert.AuthorityKeyID}}
+              <span class="code">{{.Cert.AuthorityKeyID}}</span>
+            {{else}}
+              <span class="muted">(none)</span>
+            {{end}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{if eq .Cert.Role "leaf"}}
+    <div class="panel">
+      <div class="panel-header">Renew Certificate</div>
+      <div class="panel-body">
+        <div style="padding: 18px;">
+          <div class="danger-panel-note" style="margin-bottom: 14px;">
+            Re-issues this certificate with the same parameters and a fresh validity period, replacing the stored files in place.
+          </div>
+          <form class="inline-form" method="post" action="/cert/{{.Cert.ID}}/renew">
+            <button class="button" type="submit">Renew Certificate</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {{end}}
+
+    {{if eq .Cert.Role "intermediate"}}
+    <div class="panel">
+      <div class="panel-header">Renew Certificate</div>
+      <div class="panel-body">
+        <div style="padding: 18px;">
+          <div class="danger-panel-note" style="margin-bottom: 14px;">
+            Re-issues this intermediate CA with the same parameters and a fresh validity period. Paste the root CA private key to authorize signing.
+          </div>
+          <form method="post" action="/cert/{{.Cert.ID}}/renew">
+            <div style="margin-bottom: 12px;">
+              <label style="display:block; margin-bottom:6px; color:var(--text-muted); font-size:0.92rem;">Root CA Private Key (PEM)</label>
+              <textarea name="root_key_pem" rows="8" style="width:100%; font-family:monospace; font-size:0.85rem; background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:10px; color:var(--text); resize:vertical;" placeholder="-----BEGIN EC PRIVATE KEY-----&#10;...&#10;-----END EC PRIVATE KEY-----"></textarea>
+            </div>
+            <button class="button" type="submit">Renew Intermediate CA</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {{end}}
+
+    <div class="panel">
+      <div class="panel-header">Delete Certificate</div>
+      <div class="panel-body">
+        <div style="padding: 18px;">
+          {{if .Cert.HasChildren}}
+            <div class="danger-panel-note">
+              This certificate cannot be deleted because it has child certificates beneath it in the chain.
+            </div>
+          {{else}}
+            <div class="danger-panel-note" style="margin-bottom: 14px;">
+              This will permanently remove the stored certificate and any stored private key from disk.
+            </div>
+            <form class="inline-form" method="post" action="/cert/{{.Cert.ID}}/delete">
+              <button class="button button-danger" type="submit">Delete Certificate</button>
+            </form>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

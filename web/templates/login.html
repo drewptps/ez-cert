@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>EZ-CERT Login</title>
+  <link rel="icon" href="/static/favicon.ico">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #11161d;
+      --border: #26303b;
+      --text: #e5e7eb;
+      --text-muted: #98a2b3;
+      --heading: #f3f4f6;
+      --primary: #d1d5db;
+      --primary-text: #0b0f14;
+      --primary-hover: #e5e7eb;
+      --danger-bg: #2a1212;
+      --danger-border: #8f3434;
+      --danger-text: #f2aaaa;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .login-wrap {
+      width: 100%;
+      max-width: 400px;
+      padding: 24px 20px;
+    }
+
+    .logo-link {
+      display: block;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo-link img {
+      height: 120px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: 1.2rem;
+      color: var(--heading);
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: var(--heading);
+      font-size: 0.92rem;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      font: inherit;
+      border: 1px solid #364152;
+      border-radius: 8px;
+      background: #0f141b;
+      color: var(--text);
+    }
+
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #64748b;
+    }
+
+    .button {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 10px 14px;
+      background: var(--primary);
+      color: var(--primary-text);
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid var(--primary);
+      cursor: pointer;
+      font: inherit;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .button:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .error {
+      margin-bottom: 16px;
+      padding: 10px 12px;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger-text);
+      border-radius: 8px;
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <a href="/" class="logo-link">
+      <img src="/static/logo.png" alt="EZ-CERT">
+    </a>
+
+    <div class="panel">
+      <h1>Sign In</h1>
+
+      {{if .Error}}
+        <div class="error">{{.Error}}</div>
+      {{end}}
+
+      <form method="post" action="/login">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autofocus required>
+        <button class="button" type="submit">Sign In</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# App data (certificates, auth, audit log)
+data/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Go build output
+ez-cert
+/ez-cert
+
+# Claude Code
+.claude/
+CLAUDE.md
+claude.MD

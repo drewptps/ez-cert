@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>EZ-CERT — Audit Log</title>
+  <link rel="icon" href="/static/favicon.ico">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #11161d;
+      --panel-muted: #161c24;
+      --border: #26303b;
+      --border-soft: #1d2630;
+      --text: #e5e7eb;
+      --text-muted: #98a2b3;
+      --heading: #f3f4f6;
+      --primary: #d1d5db;
+      --primary-text: #0b0f14;
+      --primary-hover: #e5e7eb;
+      --button-secondary-bg: #151b23;
+      --button-secondary-hover: #1b2430;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --radius: 10px;
+      --code-bg: #0f141b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    .app-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .app-title {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .app-title img {
+      height: 160px;
+      display: block;
+    }
+
+    .app-bar-right {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      color: var(--heading);
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--primary);
+      background: var(--primary);
+      color: var(--primary-text);
+      text-decoration: none;
+      font: inherit;
+      font-weight: bold;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+
+    .button:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .button-secondary {
+      background: var(--button-secondary-bg);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .button-secondary:hover {
+      background: var(--button-secondary-hover);
+      border-color: #334155;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-soft);
+      background: var(--panel-muted);
+      font-weight: bold;
+      color: var(--heading);
+    }
+
+    .log-entry {
+      font-family: monospace;
+      font-size: 0.88rem;
+      padding: 9px 18px;
+      border-bottom: 1px solid var(--border-soft);
+      color: var(--text);
+      white-space: pre;
+    }
+
+    .log-entry:last-child { border-bottom: 0; }
+
+    .log-entry:hover { background: #151b23; }
+
+    .empty {
+      padding: 24px 18px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .inline-form { margin: 0; }
+
+    .logout-button {
+      background: var(--button-secondary-bg);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .logout-button:hover {
+      background: var(--button-secondary-hover);
+      border-color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="app-bar">
+      <div class="app-bar-left">
+        <a href="/" class="app-title"><img src="/static/logo.png" alt="EZ-CERT"></a>
+      </div>
+      <div class="app-bar-right">
+        <a class="button button-secondary" href="/password/change">Change Password</a>
+        <a class="button button-secondary" href="/">Back to List</a>
+        <form class="inline-form" method="post" action="/logout">
+          <button class="button logout-button" type="submit">Sign Out</button>
+        </form>
+      </div>
+    </div>
+
+    <h1>Audit Log</h1>
+    <div class="subtitle">All authentication events and certificate operations, newest first.</div>
+
+    <div class="panel">
+      <div class="panel-header">Events</div>
+      {{if .Lines}}
+        {{range .Lines}}
+          <div class="log-entry">{{.}}</div>
+        {{end}}
+      {{else}}
+        <div class="empty">No events recorded yet.</div>
+      {{end}}
+    </div>
+  </div>
+</body>
+</html>
