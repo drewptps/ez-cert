@@ -176,6 +176,54 @@
       color: var(--warn-text);
       border-radius: 8px;
     }
+
+    .tooltip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #1d2630;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: help;
+      position: relative;
+      margin-left: 4px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .tooltip-icon::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a2230;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: normal;
+      width: 240px;
+      max-width: 80vw;
+      z-index: 200;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      font-weight: normal;
+      text-align: left;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .tooltip-icon:hover::after,
+    .tooltip-icon:focus-visible::after {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -211,7 +259,7 @@
       {{end}}
 
       <form method="post" action="/setup">
-        <label for="root_common_name">Root Common Name</label>
+        <label for="root_common_name">Root Common Name <span class="tooltip-icon" tabindex="0" data-tooltip="The display name for your top-level trust anchor, e.g. My Home Root CA. Its private key is shown once after creation and never stored by EZ-CERT.">?</span></label>
         <input
           id="root_common_name"
           name="root_common_name"
@@ -220,7 +268,7 @@
           required
         >
 
-        <label for="intermediate_common_name">Intermediate Common Name</label>
+        <label for="intermediate_common_name">Intermediate Common Name <span class="tooltip-icon" tabindex="0" data-tooltip="The CA that will sign your day-to-day leaf certificates. Keeping it separate from the Root means you can store the Root key offline and only use it rarely.">?</span></label>
         <input
           id="intermediate_common_name"
           name="intermediate_common_name"

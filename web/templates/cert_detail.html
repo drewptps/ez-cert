@@ -139,7 +139,6 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow: hidden;
       margin-bottom: 20px;
     }
 
@@ -149,6 +148,7 @@
       background: var(--panel-muted);
       font-weight: bold;
       color: var(--heading);
+      border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
     }
 
     .panel-body { padding: 4px 0; }
@@ -363,6 +363,54 @@
       .detail-grid > :last-child { border-bottom: 0; }
     }
 
+    .tooltip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #1d2630;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: help;
+      position: relative;
+      margin-left: 4px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .tooltip-icon::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a2230;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: normal;
+      width: 240px;
+      max-width: 80vw;
+      z-index: 200;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      font-weight: normal;
+      text-align: left;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .tooltip-icon:hover::after,
+    .tooltip-icon:focus-visible::after {
+      opacity: 1;
+    }
+
   </style>
 </head>
 <body>
@@ -420,7 +468,7 @@
           <div class="detail-label">Key Type</div>
           <div class="detail-value">{{.Cert.KeyType}}</div>
 
-          <div class="detail-label">Is CA</div>
+          <div class="detail-label">Is CA <span class="tooltip-icon" tabindex="0" data-tooltip="Whether this certificate can sign other certificates. Root and Intermediate CAs have this set to Yes; leaf certs do not.">?</span></div>
           <div class="detail-value">
             {{if ne .Cert.Role "leaf"}}Yes{{else}}<span class="muted">No</span>{{end}}
           </div>
@@ -451,7 +499,7 @@
             {{end}}
           </div>
 
-          <div class="detail-label">Subject Key ID</div>
+          <div class="detail-label">Subject Key ID <span class="tooltip-icon" tabindex="0" data-tooltip="A fingerprint of this certificate's public key. Used to link certificates to their keys when building a chain.">?</span></div>
           <div class="detail-value">
             {{if .Cert.SubjectKeyID}}
               <span class="code">{{.Cert.SubjectKeyID}}</span>
@@ -460,7 +508,7 @@
             {{end}}
           </div>
 
-          <div class="detail-label">Authority Key ID</div>
+          <div class="detail-label">Authority Key ID <span class="tooltip-icon" tabindex="0" data-tooltip="A fingerprint identifying which CA signed this certificate — matches the issuer's Subject Key ID.">?</span></div>
           <div class="detail-value">
             {{if .Cert.AuthorityKeyID}}
               <span class="code">{{.Cert.AuthorityKeyID}}</span>
@@ -489,7 +537,7 @@
               <div class="detail-label">Role</div>
               <div class="detail-value"><span class="role role-{{.Cert.Role}}">{{.Cert.Role}}</span></div>
 
-              <div class="detail-label">Key Stored</div>
+              <div class="detail-label">Key Stored <span class="tooltip-icon" tabindex="0" data-tooltip="Whether the private key is saved on disk. Root CA keys are never stored by EZ-CERT — they are shown once and discarded.">?</span></div>
               <div class="detail-value">
                 {{if .Cert.HasPrivateKey}}Yes{{else}}<span class="muted">No</span>{{end}}
               </div>
@@ -499,7 +547,7 @@
       </div>
       <div>
         <div class="panel">
-          <div class="panel-header">Certificate Chain</div>
+          <div class="panel-header">Certificate Chain <span class="tooltip-icon" tabindex="0" data-tooltip="The path from this certificate up to the Root CA. Services send the full chain so clients can verify trust without already knowing the intermediate CA.">?</span></div>
           <div class="chain">
             {{range $index, $link := .Cert.Chain}}
               {{if gt $index 0}}

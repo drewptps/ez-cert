@@ -140,7 +140,6 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    overflow: hidden;
   }
 
   .panel-header {
@@ -151,6 +150,7 @@
     padding: 16px 18px;
     border-bottom: 1px solid var(--border-soft);
     background: var(--panel-muted);
+    border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
     flex-wrap: wrap;
   }
 
@@ -298,6 +298,56 @@
     text-decoration: underline;
   }
 
+  .tooltip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #1d2630;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    cursor: help;
+    position: relative;
+    margin-left: 4px;
+    vertical-align: middle;
+    flex-shrink: 0;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .tooltip-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a2230;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: normal;
+    width: 240px;
+    max-width: 80vw;
+    z-index: 200;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    font-weight: normal;
+    text-align: left;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+
+  .tooltip-icon:hover::after,
+  .tooltip-icon:focus-visible::after {
+    opacity: 1;
+  }
+
   @media (max-width: 860px) {
     .page { padding: 24px 14px 40px; }
     th, td { padding: 10px 10px; }
@@ -323,7 +373,7 @@
         <div class="hero-value hero-value-valid">{{.Summary.Valid}}</div>
       </div>
       <div class="hero-card">
-        <div class="hero-label">Expiring Soon (≤30 days)</div>
+        <div class="hero-label">Expiring Soon (≤30 days) <span class="tooltip-icon" tabindex="0" data-tooltip="Certificates expiring within the next 30 days. Renew these before they expire to avoid service disruptions.">?</span></div>
         <div class="hero-value hero-value-warn">{{.Summary.ExpiringSoon}}</div>
       </div>
       <div class="hero-card">
@@ -344,7 +394,7 @@
         <thead>
           <tr>
             <th>Certificate</th>
-            <th>Role</th>
+            <th>Role <span class="tooltip-icon" tabindex="0" data-tooltip="Root: top-level trust anchor. Intermediate: sits between Root and leaf certs. Leaf: the cert a service actually presents (web server, VPN, etc.).">?</span></th>
             <th>Algorithm</th>
             <th>Status</th>
           </tr>

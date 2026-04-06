@@ -196,6 +196,54 @@
       margin-top: 20px;
     }
 
+    .tooltip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #1d2630;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: help;
+      position: relative;
+      margin-left: 4px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .tooltip-icon::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a2230;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: normal;
+      width: 240px;
+      max-width: 80vw;
+      z-index: 200;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      font-weight: normal;
+      text-align: left;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .tooltip-icon:hover::after,
+    .tooltip-icon:focus-visible::after {
+      opacity: 1;
+    }
+
     @media (max-width: 640px) {
       .page {
         padding: 24px 14px 40px;
@@ -228,7 +276,7 @@
       {{end}}
 
       <form method="post" action="/generate">
-        <label for="cert_type">Certificate Type</label>
+        <label for="cert_type">Certificate Type <span class="tooltip-icon" tabindex="0" data-tooltip="Root CA: the top-level trust anchor. Its private key is shown once and never stored. Intermediate CA: signs leaf certs on behalf of the Root. Leaf: the cert your service actually presents (web server, VPN, etc.).">?</span></label>
         <select id="cert_type" name="cert_type" required>
           <option value="leaf" {{if eq .Form.CertType "leaf"}}selected{{end}}>Leaf Certificate</option>
           <option value="intermediate" {{if eq .Form.CertType "intermediate"}}selected{{end}}>Intermediate CA</option>
@@ -236,7 +284,7 @@
         </select>
         <div class="hint">Choose what kind of certificate to create.</div>
 
-        <label for="common_name">Common Name</label>
+        <label for="common_name">Common Name <span class="tooltip-icon" tabindex="0" data-tooltip="The primary identifier for this certificate. For a service use the domain name (e.g. home.local). For a CA, use a descriptive name like My Home Root CA.">?</span></label>
         <input
           id="common_name"
           name="common_name"
@@ -258,7 +306,7 @@
 
         {{/* Leaf-specific fields */}}
         <div id="section-leaf" style="display:{{if eq .Form.CertType "leaf"}}block{{else}}none{{end}}">
-          <label for="dns_sans">DNS SANs</label>
+          <label for="dns_sans">DNS SANs <span class="tooltip-icon" tabindex="0" data-tooltip="Subject Alternative Names — the domain names this cert covers. Separate with commas, e.g. home.local, *.home.local. Modern clients check SANs, not the Common Name.">?</span></label>
           <input
             id="dns_sans"
             name="dns_sans"
@@ -268,7 +316,7 @@
           >
           <div class="hint">Comma-separated DNS names.</div>
 
-          <label for="ip_sans">IP SANs</label>
+          <label for="ip_sans">IP SANs <span class="tooltip-icon" tabindex="0" data-tooltip="IP addresses this cert covers, e.g. 192.168.1.10. Useful when services are accessed directly by IP rather than a hostname.">?</span></label>
           <input
             id="ip_sans"
             name="ip_sans"
@@ -279,7 +327,7 @@
           <div class="hint">Comma-separated IPv4 or IPv6 addresses.</div>
 
           {{if .IntermediateIssuers}}
-            <label for="issuer_leaf">Issuer</label>
+            <label for="issuer_leaf">Issuer <span class="tooltip-icon" tabindex="0" data-tooltip="The Intermediate CA that will sign this leaf certificate. You must have at least one intermediate CA before you can issue leaf certs.">?</span></label>
             <select id="issuer_leaf" name="issuer_id" {{if ne .Form.CertType "leaf"}}disabled{{end}}>
               {{range .IntermediateIssuers}}
                 <option value="{{.ID}}" {{if eq $.Form.IssuerID .ID}}selected{{end}}>
@@ -298,7 +346,7 @@
         {{/* Intermediate-specific fields */}}
         <div id="section-intermediate" style="display:{{if eq .Form.CertType "intermediate"}}block{{else}}none{{end}}">
           {{if .RootIssuers}}
-            <label for="issuer_intermediate">Issuer Root</label>
+            <label for="issuer_intermediate">Issuer Root <span class="tooltip-icon" tabindex="0" data-tooltip="The Root CA that will sign this new Intermediate CA. You will need to paste its private key below to authorize the signing.">?</span></label>
             <select id="issuer_intermediate" name="issuer_id" {{if ne .Form.CertType "intermediate"}}disabled{{end}}>
               {{range .RootIssuers}}
                 <option value="{{.ID}}" {{if eq $.Form.IssuerID .ID}}selected{{end}}>
@@ -308,7 +356,7 @@
             </select>
             <div class="hint">The new intermediate CA will be signed by this stored root certificate.</div>
 
-            <label for="root_key_pem">Root Private Key PEM</label>
+            <label for="root_key_pem">Root Private Key PEM <span class="tooltip-icon" tabindex="0" data-tooltip="Paste the PEM-encoded private key for the Root CA above. It is used only to sign this request and is never stored by EZ-CERT.">?</span></label>
             <textarea
               id="root_key_pem"
               name="root_key_pem"
@@ -331,7 +379,7 @@
           </div>
         </div>
 
-        <label for="key_profile">Key Profile</label>
+        <label for="key_profile">Key Profile <span class="tooltip-icon" tabindex="0" data-tooltip="The cryptographic algorithm for this certificate's key pair. ECDSA P-256 is the recommended default — fast and secure. Choose RSA only if you need compatibility with very old software.">?</span></label>
         <select id="key_profile" name="key_profile">
           <option value="ecdsa-p256" {{if eq .Form.KeyProfile "ecdsa-p256"}}selected{{end}}>ECDSA Curve P-256</option>
           <option value="ecdsa-p384" {{if eq .Form.KeyProfile "ecdsa-p384"}}selected{{end}}>ECDSA Curve P-384</option>
@@ -342,7 +390,7 @@
         </select>
         <div class="hint">ECDSA P-256 is the default and usually the right choice.</div>
 
-        <label for="days">Validity (Days)</label>
+        <label for="days">Validity (Days) <span class="tooltip-icon" tabindex="0" data-tooltip="How long this certificate is trusted before it expires. Roots are long-lived (~10 years = 3650 days). Leaves should be short (~1 year = 365 days) so they rotate regularly.">?</span></label>
         <input
           id="days"
           name="days"

@@ -38,7 +38,25 @@ Then open [http://localhost:8080](http://localhost:8080).
 - Export cert, private key, or full chain bundle as PEM files
 - Copy-to-clipboard on PEM output blocks
 - Dashboard showing certificate hierarchy with expiry status
+- Email notifications for expiring certificates (SMTP)
 - File-based storage — no database, easy to back up
+
+## Expiry Notifications
+
+EZ-CERT can send email alerts when certificates are approaching expiry. Configure SMTP under **Settings → Notifications** in the UI.
+
+| Field | Description |
+|---|---|
+| SMTP Host | Your mail server hostname (e.g. `smtp.example.com`) |
+| Port | Usually `587` (STARTTLS). Port `465` (SMTPS) is not supported. |
+| Username / Password | SMTP auth credentials. Leave Password blank on save to keep the existing value. |
+| From / To | Sender and recipient addresses for alert emails. |
+| Notify when expiring within | Certificates expiring within this many days are included in alerts (default: 30). |
+| Check interval | How often the background scheduler runs the check, in hours (default: 24). |
+
+The scheduler runs automatically in the background and checks on the configured interval. It persists the last-run time to `data/notify_last_run` so the schedule stays consistent across server restarts. You can also trigger an immediate check at any time with the **Send Notification Now** button.
+
+Alerts are only sent for certificates in "expiring soon" status — certificates that are already expired are not included.
 
 ## Data
 
@@ -49,6 +67,8 @@ All data lives in the Docker volume at `/app/data`:
 | `data/certs/` | One directory per certificate, containing `cert.pem`, `key.pem`, `description.txt` |
 | `data/auth.hash` | bcrypt hash of the UI password |
 | `data/audit.log` | Append-only log of all auth and certificate events |
+| `data/smtp.json` | SMTP notification settings |
+| `data/notify_last_run` | Timestamp of the last notification check |
 
 Back up the volume to preserve everything. The root CA private key is **never stored** — save it somewhere secure when shown at creation time.
 

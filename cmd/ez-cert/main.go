@@ -9,15 +9,18 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"fmt"
 	"html/template"
 	"log"
 	"math"
 	"net"
 	"net/http"
+	"net/smtp"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"ez-cert/internal/pki"
 	"ez-cert/internal/store"
@@ -88,6 +91,13 @@ type PasswordChangePageData struct {
 
 type AuditPageData struct {
 	Lines []string
+}
+
+type SettingsPageData struct {
+	Config  store.SMTPConfig
+	LastRun time.Time
+	Error   string
+	Success string
 }
 
 const sessionCookieName = "ezcert_session"
@@ -168,11 +178,15 @@ func main() {
 	mux.HandleFunc("/generate", requireAuth(handleGenerate))
 	mux.HandleFunc("/cert/", requireAuth(handleCertSubroutes))
 	mux.HandleFunc("/audit", requireAuth(handleAudit))
+	mux.HandleFunc("/settings", requireAuth(handleSettings))
+	mux.HandleFunc("/notify/check", requireAuth(handleNotifyCheck))
 	mux.HandleFunc("/password/change", requireAuth(handlePasswordChange))
 	mux.HandleFunc("/login", handleLogin)
 	mux.HandleFunc("/logout", handleLogout)
 	mux.HandleFunc("/password/setup", handlePasswordSetup)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
+
+	startNotifyScheduler()
 
 	log.Println("ez-cert listening on :8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
@@ -1427,6 +1441,216 @@ func renderTemplate(w http.ResponseWriter, path string, data any) {
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, "failed to render template: "+err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func handleSettings(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		cfg, err := store.LoadSMTPConfig(dataDir())
+		if err != nil {
+			http.Error(w, "failed to load settings: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		lastRun, _ := store.LoadNotifyLastRun(dataDir())
+		data := SettingsPageData{Config: cfg, LastRun: lastRun}
+		// Messages forwarded from /notify/check via query params.
+		if msg := r.URL.Query().Get("success"); msg != "" {
+			data.Success = msg
+		}
+		if msg := r.URL.Query().Get("error"); msg != "" {
+			data.Error = msg
+		}
+		renderTemplate(w, "web/templates/settings.html", data)
+
+	case http.MethodPost:
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form", http.StatusBadRequest)
+			return
+		}
+
+		enabled := r.FormValue("enabled") == "on"
+		host := strings.TrimSpace(r.FormValue("host"))
+		portStr := strings.TrimSpace(r.FormValue("port"))
+		username := strings.TrimSpace(r.FormValue("username"))
+		password := r.FormValue("password")
+		from := strings.TrimSpace(r.FormValue("from"))
+		to := strings.TrimSpace(r.FormValue("to"))
+		thresholdStr := strings.TrimSpace(r.FormValue("threshold_days"))
+		intervalStr := strings.TrimSpace(r.FormValue("check_interval_hours"))
+
+		port, _ := strconv.Atoi(portStr)
+		threshold, _ := strconv.Atoi(thresholdStr)
+		interval, _ := strconv.Atoi(intervalStr)
+
+		cfg := store.SMTPConfig{
+			Enabled:            enabled,
+			Host:               host,
+			Port:               port,
+			Username:           username,
+			From:               from,
+			To:                 to,
+			ThresholdDays:      threshold,
+			CheckIntervalHours: interval,
+		}
+
+		// Preserve existing password if field left blank.
+		if password == "" {
+			existing, err := store.LoadSMTPConfig(dataDir())
+			if err == nil {
+				cfg.Password = existing.Password
+			}
+		} else {
+			cfg.Password = password
+		}
+
+		// Validate.
+		if cfg.Port == 0 {
+			cfg.Port = 587
+		}
+		if cfg.ThresholdDays == 0 {
+			cfg.ThresholdDays = 30
+		}
+		if cfg.CheckIntervalHours == 0 {
+			cfg.CheckIntervalHours = 24
+		}
+		var validationErr string
+		if enabled {
+			switch {
+			case host == "":
+				validationErr = "SMTP host is required when notifications are enabled."
+			case cfg.Port < 1 || cfg.Port > 65535:
+				validationErr = "Port must be between 1 and 65535."
+			case from == "":
+				validationErr = "From address is required when notifications are enabled."
+			case to == "":
+				validationErr = "To address is required when notifications are enabled."
+			}
+		}
+		if cfg.ThresholdDays < 1 || cfg.ThresholdDays > 365 {
+			validationErr = "Threshold must be between 1 and 365 days."
+		}
+		if cfg.CheckIntervalHours < 1 {
+			validationErr = "Check interval must be at least 1 hour."
+		}
+
+		lastRun, _ := store.LoadNotifyLastRun(dataDir())
+		if validationErr != "" {
+			renderTemplate(w, "web/templates/settings.html", SettingsPageData{Config: cfg, LastRun: lastRun, Error: validationErr})
+			return
+		}
+
+		if err := store.SaveSMTPConfig(dataDir(), cfg); err != nil {
+			renderTemplate(w, "web/templates/settings.html", SettingsPageData{Config: cfg, LastRun: lastRun, Error: "Failed to save settings: " + err.Error()})
+			return
+		}
+		renderTemplate(w, "web/templates/settings.html", SettingsPageData{Config: cfg, LastRun: lastRun, Success: "Settings saved."})
+
+	default:
+		w.Header().Set("Allow", "GET, POST")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func handleNotifyCheck(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", "POST")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	cfg, err := store.LoadSMTPConfig(dataDir())
+	if err != nil {
+		http.Redirect(w, r, "/settings?error=Failed+to+load+settings.", http.StatusSeeOther)
+		return
+	}
+	if !cfg.Enabled || cfg.Host == "" {
+		http.Redirect(w, r, "/settings?error=Notifications+are+not+enabled.+Configure+SMTP+settings+first.", http.StatusSeeOther)
+		return
+	}
+
+	sent, err := runNotifyCheck(cfg)
+	if err != nil {
+		http.Redirect(w, r, "/settings?error=Failed+to+send+email:+"+strings.ReplaceAll(err.Error(), " ", "+"), http.StatusSeeOther)
+		return
+	}
+	if sent == 0 {
+		http.Redirect(w, r, fmt.Sprintf("/settings?success=No+certificates+expiring+within+%d+days.", cfg.ThresholdDays), http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, r, fmt.Sprintf("/settings?success=Notification+sent+for+%d+certificate(s).", sent), http.StatusSeeOther)
+}
+
+// runNotifyCheck loads certificates, sends an expiry email if any are within
+// the threshold, saves the last-run timestamp, and returns the number of certs
+// included in the email.
+func runNotifyCheck(cfg store.SMTPConfig) (int, error) {
+	certDir := filepath.Join(dataDir(), "certs")
+	rows, err := store.LoadCertificates(certDir)
+	if err != nil {
+		return 0, fmt.Errorf("load certificates: %w", err)
+	}
+
+	threshold := time.Duration(cfg.ThresholdDays) * 24 * time.Hour
+	now := time.Now()
+	var expiring []store.CertificateRow
+	for _, row := range rows {
+		remaining := row.NotAfter.Sub(now)
+		if remaining > 0 && remaining <= threshold {
+			expiring = append(expiring, row)
+		}
+	}
+
+	if len(expiring) > 0 {
+		if err := sendExpiryEmail(cfg, expiring); err != nil {
+			return 0, err
+		}
+	}
+
+	auditLog(fmt.Sprintf("NOTIFY_CHECK  sent=%d  threshold=%dd", len(expiring), cfg.ThresholdDays))
+	_ = store.SaveNotifyLastRun(dataDir(), now)
+	return len(expiring), nil
+}
+
+// startNotifyScheduler runs a background goroutine that fires runNotifyCheck
+// whenever the configured interval has elapsed since the last run.
+func startNotifyScheduler() {
+	go func() {
+		for {
+			time.Sleep(time.Hour)
+			cfg, err := store.LoadSMTPConfig(dataDir())
+			if err != nil || !cfg.Enabled || cfg.Host == "" || cfg.CheckIntervalHours < 1 {
+				continue
+			}
+			lastRun, _ := store.LoadNotifyLastRun(dataDir())
+			if time.Since(lastRun) >= time.Duration(cfg.CheckIntervalHours)*time.Hour {
+				if _, err := runNotifyCheck(cfg); err != nil {
+					log.Printf("notify check error: %v", err)
+				}
+			}
+		}
+	}()
+}
+
+func sendExpiryEmail(cfg store.SMTPConfig, certs []store.CertificateRow) error {
+	now := time.Now()
+	var body strings.Builder
+	body.WriteString(fmt.Sprintf("The following certificate(s) are expiring within %d days:\n\n", cfg.ThresholdDays))
+	for _, c := range certs {
+		days := int(math.Ceil(c.NotAfter.Sub(now).Hours() / 24))
+		body.WriteString(fmt.Sprintf("  %-40s  (expires in %d day(s))\n", c.CommonName, days))
+	}
+	body.WriteString("\nLog in to EZ-CERT to renew these certificates.\n")
+
+	subject := fmt.Sprintf("EZ-CERT: %d certificate(s) expiring within %d days", len(certs), cfg.ThresholdDays)
+	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n%s",
+		cfg.From, cfg.To, subject, body.String())
+
+	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	var auth smtp.Auth
+	if cfg.Username != "" {
+		auth = smtp.PlainAuth("", cfg.Username, cfg.Password, cfg.Host)
+	}
+	return smtp.SendMail(addr, auth, cfg.From, []string{cfg.To}, []byte(msg))
 }
 
 func sanitizeID(id string) (string, bool) {
