@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Generate Certificate</title>
+  <title>Generate Certificate — EZ-CERT</title>
   <link rel="icon" href="/static/favicon.ico">
   <link rel="shortcut icon" href="/static/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -223,12 +223,7 @@
 
       <form method="post" action="/generate">
         <label for="cert_type">Certificate Type</label>
-        <select
-          id="cert_type"
-          name="cert_type"
-          required
-          onchange="window.location='/generate?cert_type=' + encodeURIComponent(this.value)"
-        >
+        <select id="cert_type" name="cert_type" required>
           <option value="leaf" {{if eq .Form.CertType "leaf"}}selected{{end}}>Leaf Certificate</option>
           <option value="intermediate" {{if eq .Form.CertType "intermediate"}}selected{{end}}>Intermediate CA</option>
           <option value="root" {{if eq .Form.CertType "root"}}selected{{end}}>Root CA</option>
@@ -255,7 +250,8 @@
         >{{.Form.Description}}</textarea>
         <div class="hint">A plain-language note about the purpose of this certificate.</div>
 
-        {{if eq .Form.CertType "leaf"}}
+        {{/* Leaf-specific fields */}}
+        <div id="section-leaf" style="display:{{if eq .Form.CertType "leaf"}}block{{else}}none{{end}}">
           <label for="dns_sans">DNS SANs</label>
           <input
             id="dns_sans"
@@ -277,8 +273,8 @@
           <div class="hint">Comma-separated IPv4 or IPv6 addresses.</div>
 
           {{if .IntermediateIssuers}}
-            <label for="issuer_id">Issuer</label>
-            <select id="issuer_id" name="issuer_id" required>
+            <label for="issuer_leaf">Issuer</label>
+            <select id="issuer_leaf" name="issuer_id" {{if ne .Form.CertType "leaf"}}disabled{{end}}>
               {{range .IntermediateIssuers}}
                 <option value="{{.ID}}" {{if eq $.Form.IssuerID .ID}}selected{{end}}>
                   {{.CommonName}} ({{.ID}})
@@ -291,12 +287,13 @@
               No intermediate CAs are available. Generate an intermediate CA first.
             </div>
           {{end}}
-        {{end}}
+        </div>
 
-        {{if eq .Form.CertType "intermediate"}}
+        {{/* Intermediate-specific fields */}}
+        <div id="section-intermediate" style="display:{{if eq .Form.CertType "intermediate"}}block{{else}}none{{end}}">
           {{if .RootIssuers}}
-            <label for="issuer_id">Issuer Root</label>
-            <select id="issuer_id" name="issuer_id" required>
+            <label for="issuer_intermediate">Issuer Root</label>
+            <select id="issuer_intermediate" name="issuer_id" {{if ne .Form.CertType "intermediate"}}disabled{{end}}>
               {{range .RootIssuers}}
                 <option value="{{.ID}}" {{if eq $.Form.IssuerID .ID}}selected{{end}}>
                   {{.CommonName}} ({{.ID}})
@@ -311,7 +308,7 @@
               name="root_key_pem"
               class="monospace"
               placeholder="-----BEGIN ... PRIVATE KEY-----"
-              required
+              {{if ne .Form.CertType "intermediate"}}disabled{{end}}
             >{{.Form.RootKeyPEM}}</textarea>
             <div class="hint">Paste the PEM-encoded root private key. It is used only for this request and is not stored.</div>
           {{else}}
@@ -319,13 +316,14 @@
               No root CAs are available. Generate a root CA first.
             </div>
           {{end}}
-        {{end}}
+        </div>
 
-        {{if eq .Form.CertType "root"}}
+        {{/* Root-specific fields */}}
+        <div id="section-root" style="display:{{if eq .Form.CertType "root"}}block{{else}}none{{end}}">
           <div class="hint" style="margin-top: 16px;">
             Root CA generation will create a new self-signed root certificate and show its private key once without storing it.
           </div>
-        {{end}}
+        </div>
 
         <label for="key_profile">Key Profile</label>
         <select id="key_profile" name="key_profile">
@@ -347,28 +345,54 @@
           placeholder="{{if eq .Form.CertType "root"}}3650{{else if eq .Form.CertType "intermediate"}}1825{{else}}365{{end}}"
           required
         >
-        <div class="hint">
-          {{if eq .Form.CertType "root"}}
-            3650 is the default for root CAs.
-          {{else if eq .Form.CertType "intermediate"}}
-            1825 is the default for intermediate CAs.
-          {{else}}
-            365 is the default for leaf certificates.
-          {{end}}
+        <div id="days-hint" class="hint">
+          {{if eq .Form.CertType "root"}}3650 is the default for root CAs.{{else if eq .Form.CertType "intermediate"}}1825 is the default for intermediate CAs.{{else}}365 is the default for leaf certificates.{{end}}
         </div>
 
         <div class="actions">
-          <button class="button" type="submit">
-            {{if eq .Form.CertType "root"}}
-              Generate Root CA
-            {{else if eq .Form.CertType "intermediate"}}
-              Generate Intermediate CA
-            {{else}}
-              Generate Leaf Certificate
-            {{end}}
+          <button id="submit-btn" class="button" type="submit">
+            {{if eq .Form.CertType "root"}}Generate Root CA{{else if eq .Form.CertType "intermediate"}}Generate Intermediate CA{{else}}Generate Leaf Certificate{{end}}
           </button>
         </div>
       </form>
+      <script>
+        (function() {
+          var select = document.getElementById('cert_type');
+          var daysInput = document.getElementById('days');
+          var daysHint = document.getElementById('days-hint');
+          var submitBtn = document.getElementById('submit-btn');
+          var sections = {
+            leaf: document.getElementById('section-leaf'),
+            intermediate: document.getElementById('section-intermediate'),
+            root: document.getElementById('section-root')
+          };
+          var defaults = { leaf: '365', intermediate: '1825', root: '3650' };
+          var hints = {
+            leaf: '365 is the default for leaf certificates.',
+            intermediate: '1825 is the default for intermediate CAs.',
+            root: '3650 is the default for root CAs.'
+          };
+          var labels = {
+            leaf: 'Generate Leaf Certificate',
+            intermediate: 'Generate Intermediate CA',
+            root: 'Generate Root CA'
+          };
+
+          select.addEventListener('change', function() {
+            var type = this.value;
+            Object.keys(sections).forEach(function(t) {
+              var active = t === type;
+              sections[t].style.display = active ? 'block' : 'none';
+              sections[t].querySelectorAll('select, input, textarea').forEach(function(el) {
+                el.disabled = !active;
+              });
+            });
+            daysInput.placeholder = defaults[type];
+            daysHint.textContent = hints[type];
+            submitBtn.textContent = labels[type];
+          });
+        })();
+      </script>
     </div>
   </div>
 </body>

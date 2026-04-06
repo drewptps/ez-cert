@@ -230,6 +230,18 @@
     color: #cbd5e1;
   }
 
+  .role-root {
+    background: #241a0a;
+    border-color: #7a4e1a;
+    color: #f5c97a;
+  }
+
+  .role-intermediate {
+    background: #0d1a2e;
+    border-color: #1e4a7a;
+    color: #7ab8f5;
+  }
+
   .status {
     display: inline-block;
     padding: 4px 10px;
@@ -304,7 +316,7 @@
         <div class="hero-value">{{.Summary.Leaves}}</div>
       </div>
       <div class="hero-card">
-        <div class="hero-label">Expiring Soon</div>
+        <div class="hero-label">Expiring Soon (≤30 days)</div>
         <div class="hero-value">{{.Summary.ExpiringSoon}}</div>
       </div>
     </div>
@@ -323,8 +335,7 @@
             <th>ID</th>
             <th>CN</th>
             <th>Role</th>
-            <th>Expires In</th>
-            <th>Validity</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -346,13 +357,11 @@
                 {{end}}
               </td>
               <td>
-                <span class="role">{{.Role}}</span>
+                <span class="role role-{{.Role}}">{{.Role}}</span>
               </td>
-              <td>{{.ExpiresIn}}</td>
               <td>
-                <span class="status status-{{.Status}}">
-                  {{.ValidityText}}
-                </span>
+                <span class="status status-{{.Status}}">{{.ValidityText}}</span>
+                <span class="muted" style="font-size:0.85rem; margin-left:6px;">{{.ExpiresIn}}</span>
               </td>
             </tr>
           {{end}}

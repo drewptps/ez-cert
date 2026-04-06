@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Root CA created</title>
+  <title>Root CA Created — EZ-CERT</title>
   <link rel="icon" href="/static/favicon.ico">
   <link rel="shortcut icon" href="/static/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -131,7 +131,29 @@
       padding: 12px;
       overflow-x: auto;
       color: #dbe2ea;
+      margin: 0;
     }
+
+    .pem-block {
+      position: relative;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 10px;
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: bold;
+      background: #1b2430;
+      color: #cbd5e1;
+      border: 1px solid #364152;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover { background: #222d3a; }
   </style>
 </head>
 <body>
@@ -180,15 +202,32 @@
 
     <div class="panel">
       <h2>Root Certificate</h2>
-      <pre>{{.RootCertPEM}}</pre>
+      <div class="pem-block">
+        <button class="copy-btn" type="button">Copy</button>
+        <pre>{{.RootCertPEM}}</pre>
+      </div>
     </div>
 
     <div class="panel">
       <h2>Root Private Key</h2>
-      <pre>{{.RootKeyPEM}}</pre>
+      <div class="pem-block">
+        <button class="copy-btn" type="button">Copy</button>
+        <pre>{{.RootKeyPEM}}</pre>
+      </div>
     </div>
 
     <a class="button" href="/">Go to certificate list</a>
   </div>
+  <script>
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var text = btn.parentElement.querySelector('pre').textContent;
+        navigator.clipboard.writeText(text).then(function() {
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+        });
+      });
+    });
+  </script>
 </body>
 </html>
