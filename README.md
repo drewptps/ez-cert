@@ -36,6 +36,8 @@ Then open [http://localhost:8080](http://localhost:8080).
 - Certificate renewal in place
 - Password-protected UI with audit log
 - Export cert, private key, or full chain bundle as PEM files
+- Copy-to-clipboard on PEM output blocks
+- Dashboard showing certificate hierarchy with expiry status
 - File-based storage — no database, easy to back up
 
 ## Data
