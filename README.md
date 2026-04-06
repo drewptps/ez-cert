@@ -9,7 +9,7 @@ Create a `docker-compose.yml` and run it:
 ```yaml
 services:
   ez-cert:
-    image: ghcr.io/drewpetipas/ez-cert:latest  # or pin to a specific tag e.g. v1.0.0
+    image: ghcr.io/drewptps/ez-cert:latest  # or pin to a specific tag e.g. v1.0.0
     container_name: ez-cert
     restart: unless-stopped
     ports:
