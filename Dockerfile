@@ -14,19 +14,20 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o ez-cert ./cmd/ez-cert
 
 FROM alpine:3.21
 
-RUN addgroup -S ezcert && adduser -S -G ezcert ezcert
+RUN apk add --no-cache su-exec && \
+    addgroup -S ezcert && adduser -S -G ezcert ezcert
 
 WORKDIR /app
 
 COPY --from=builder /build/ez-cert .
 COPY web/ web/
+COPY entrypoint.sh .
 
-RUN mkdir -p data && chown -R ezcert:ezcert /app
-
-USER ezcert
+RUN chmod +x entrypoint.sh && \
+    mkdir -p data && chown -R ezcert:ezcert /app
 
 EXPOSE 8080
 
 ENV EZCERT_DATA_DIR=/app/data
 
-ENTRYPOINT ["./ez-cert"]
+ENTRYPOINT ["./entrypoint.sh"]
