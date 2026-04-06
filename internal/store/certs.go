@@ -52,6 +52,7 @@ type TreeNode struct {
 	Depth        int
 	ExpiresIn    string
 	ValidityText string
+	Algorithm    string
 }
 
 type CertificateChainLink struct {
@@ -82,11 +83,10 @@ type CertificateDetail struct {
 }
 
 type HomeSummary struct {
-	Total         int
-	Roots         int
-	Intermediates int
-	Leaves        int
-	ExpiringSoon  int
+	Total        int
+	Valid        int
+	ExpiringSoon int
+	Expired      int
 }
 
 func LoadCertificates(baseDir string) ([]CertificateRow, error) {
@@ -211,17 +211,13 @@ func LoadHomeSummary(baseDir string) (HomeSummary, error) {
 	for _, item := range certs {
 		summary.Total++
 
-		switch deriveRole(item.Certificate) {
-		case "root":
-			summary.Roots++
-		case "intermediate":
-			summary.Intermediates++
-		default:
-			summary.Leaves++
-		}
-
-		if deriveStatus(item.Certificate, now) == "warning" {
+		switch deriveStatus(item.Certificate, now) {
+		case "valid":
+			summary.Valid++
+		case "warning":
 			summary.ExpiringSoon++
+		case "expired":
+			summary.Expired++
 		}
 	}
 
@@ -341,6 +337,7 @@ func LoadTree(baseDir string) ([]TreeNode, error) {
 			Depth:        depth,
 			ExpiresIn:    formatExpiresIn(item.Cert.NotAfter, now),
 			ValidityText: formatValidity(status),
+			Algorithm:    publicKeyType(item.Cert.PublicKey),
 		})
 
 		for _, child := range childrenByParentID[item.ID] {

@@ -7,6 +7,8 @@
   <link rel="icon" href="/static/favicon.ico">
   <link rel="shortcut icon" href="/static/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
 
   {{template "styles" .}}
 </head>
@@ -15,22 +17,114 @@
     <div class="app-bar">
       <div class="app-bar-left">
         <a href="/" class="app-title">
-          <img src="/static/logo.png" alt="EZ-CERT">
+          <span class="app-title-text">EZ-CERT</span>
         </a>
       </div>
 
       <div class="app-bar-right">
-        <a class="button button-secondary" href="/audit">Audit Log</a>
-        <a class="button button-secondary" href="/password/change">Change Password</a>
         <a class="button" href="/generate">Generate Certificate</a>
-        <form style="margin:0;" method="post" action="/logout">
-          <button class="button button-secondary" type="submit">Sign Out</button>
-        </form>
+        <div class="settings-menu" id="settingsMenu">
+          <button class="button button-secondary settings-toggle" id="settingsToggle" aria-haspopup="true" aria-expanded="false" aria-label="Settings">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+          <div class="settings-dropdown" id="settingsDropdown" hidden>
+            <a class="settings-item" href="/audit">Audit Log</a>
+            <a class="settings-item" href="/password/change">Change Password</a>
+            <div class="settings-divider"></div>
+            <form method="post" action="/logout">
+              <button class="settings-item settings-item-button" type="submit">Sign Out</button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
 
     {{template "content" .}}
   </div>
+
+  <style>
+    .settings-menu {
+      position: relative;
+    }
+
+    .settings-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+
+    .settings-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 180px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .settings-item {
+      display: block;
+      width: 100%;
+      padding: 10px 16px;
+      color: var(--text);
+      text-decoration: none;
+      font: inherit;
+      font-size: 0.95rem;
+      background: none;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .settings-item:hover {
+      background: var(--button-secondary-hover);
+    }
+
+    .settings-divider {
+      height: 1px;
+      background: var(--border-soft);
+      margin: 4px 0;
+    }
+  </style>
+
+  <script>
+    (function () {
+      var toggle = document.getElementById('settingsToggle');
+      var dropdown = document.getElementById('settingsDropdown');
+
+      toggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = !dropdown.hidden;
+        dropdown.hidden = open;
+        toggle.setAttribute('aria-expanded', String(!open));
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!dropdown.hidden && !dropdown.contains(e.target)) {
+          dropdown.hidden = true;
+          toggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !dropdown.hidden) {
+          dropdown.hidden = true;
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.focus();
+        }
+      });
+    }());
+  </script>
 </body>
 </html>
 {{end}}

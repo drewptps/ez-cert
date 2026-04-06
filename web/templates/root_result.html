@@ -6,6 +6,8 @@
   <link rel="icon" href="/static/favicon.ico">
   <link rel="shortcut icon" href="/static/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #0b0f14;
@@ -56,9 +58,13 @@
       text-decoration: none;
     }
 
-    .app-title img {
-      height: 160px;
-      display: block;
+    .app-title-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.8rem;
+      letter-spacing: 0.08em;
+      color: #f0ead8;
+      text-shadow: 3px 3px 0 #c0392b, -1px -1px 0 #c0392b;
+      line-height: 1;
     }
 
     .app-bar-right {
@@ -160,7 +166,7 @@
   <div class="page">
     <div class="app-bar">
       <div class="app-bar-left">
-        <a href="/" class="app-title"><img src="/static/logo.png" alt="EZ-CERT"></a>
+        <a href="/" class="app-title"><span class="app-title-text">EZ-CERT</span></a>
       </div>
 
       <div class="app-bar-right">

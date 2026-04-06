@@ -6,6 +6,8 @@
   <link rel="icon" href="/static/favicon.ico">
   <link rel="shortcut icon" href="/static/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #0b0f14;
@@ -67,9 +69,13 @@
       text-decoration: none;
     }
 
-    .app-title img {
-      height: 160px;
-      display: block;
+    .app-title-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.8rem;
+      letter-spacing: 0.08em;
+      color: #f0ead8;
+      text-shadow: 3px 3px 0 #c0392b, -1px -1px 0 #c0392b;
+      line-height: 1;
     }
 
     .app-bar-right,
@@ -128,66 +134,35 @@
       border-color: #334155;
     }
 
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .summary-card,
     .panel {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-    }
-
-    .summary-card { padding: 16px 18px; }
-
-    .summary-label {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-bottom: 8px;
-    }
-
-    .summary-value {
-      font-size: 1.15rem;
-      font-weight: bold;
-      color: var(--heading);
-    }
-
-    .panel {
       overflow: hidden;
       margin-bottom: 20px;
     }
 
     .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
       padding: 14px 18px;
       border-bottom: 1px solid var(--border-soft);
       background: var(--panel-muted);
       font-weight: bold;
       color: var(--heading);
-      flex-wrap: wrap;
-    }
-
-    .panel-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .panel-actions .button {
-      margin: 0;
-      padding: 8px 12px;
-      font-size: 0.92rem;
     }
 
     .panel-body { padding: 4px 0; }
+
+    .detail-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .detail-cols { grid-template-columns: 1fr; }
+    }
 
     .detail-grid {
       display: grid;
@@ -249,9 +224,9 @@
     }
 
     .role-root {
-      background: #241a0a;
-      border-color: #7a4e1a;
-      color: #f5c97a;
+      background: #1a0d2e;
+      border-color: #5a2e8a;
+      color: #c47af5;
     }
 
     .role-intermediate {
@@ -296,11 +271,24 @@
       background: #10151c;
       text-decoration: none;
       color: var(--text);
+      cursor: pointer;
     }
 
     .chain-item:hover {
       background: #151b23;
       border-color: #334155;
+    }
+
+    .chain-item-current {
+      border-color: #4a5568;
+      background: #161d27;
+      font-weight: bold;
+      cursor: default;
+    }
+
+    .chain-item-current:hover {
+      background: #161d27;
+      border-color: #4a5568;
     }
 
     .chain-role {
@@ -312,6 +300,18 @@
       background: #18202a;
       border: 1px solid var(--border);
       color: #cbd5e1;
+    }
+
+    .chain-role-root {
+      background: #1a0d2e;
+      border-color: #5a2e8a;
+      color: #c47af5;
+    }
+
+    .chain-role-intermediate {
+      background: #0d1a2e;
+      border-color: #1e4a7a;
+      color: #7ab8f5;
     }
 
     .chain-arrow {
@@ -353,7 +353,6 @@
     }
 
     @media (max-width: 900px) {
-      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .detail-grid { grid-template-columns: 1fr; }
       .detail-label {
         border-bottom: 0;
@@ -364,16 +363,13 @@
       .detail-grid > :last-child { border-bottom: 0; }
     }
 
-    @media (max-width: 640px) {
-      .summary { grid-template-columns: 1fr; }
-    }
   </style>
 </head>
 <body>
   <div class="page">
     <div class="app-bar">
       <div class="app-bar-left">
-        <a href="/" class="app-title"><img src="/static/logo.png" alt="EZ-CERT"></a>
+        <a href="/" class="app-title"><span class="app-title-text">EZ-CERT</span></a>
       </div>
 
       <div class="app-bar-right">
@@ -395,51 +391,19 @@
     </div>
     {{end}}
 
-    <div class="summary">
-      <div class="summary-card">
-        <div class="summary-label">Role</div>
-        <div class="summary-value"><span class="role role-{{.Cert.Role}}">{{.Cert.Role}}</span></div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-label">Validity</div>
-        <div class="summary-value">
-          <span class="status status-{{.Cert.Status}}">{{.Cert.ValidityText}}</span>
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-label">Expires In</div>
-        <div class="summary-value">{{.Cert.ExpiresIn}}</div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-label">Private Key</div>
-        <div class="summary-value">{{if .Cert.HasPrivateKey}}Stored{{else}}Not Stored{{end}}</div>
-      </div>
-    </div>
-
     <div class="panel">
       <div class="panel-header">
-        <span>General</span>
-        <div class="panel-actions">
-          <a class="button button-secondary" href="/cert/{{.Cert.ID}}/export/cert">Download Cert</a>
-          {{if .Cert.HasPrivateKey}}
-            <a class="button button-secondary" href="/cert/{{.Cert.ID}}/export/key">Download Key</a>
-          {{end}}
-          <a class="button button-secondary" href="/cert/{{.Cert.ID}}/export/bundle">Download Bundle</a>
+        Certificate
+        <div style="font-weight:normal; font-size:0.85rem; margin-top:4px;">
+          <span class="status status-{{.Cert.Status}}">{{.Cert.ValidityText}}</span>
+          <span class="muted" style="margin-left:6px;">{{.Cert.ExpiresIn}}</span>
         </div>
       </div>
       <div class="panel-body">
         <div class="detail-grid">
-          <div class="detail-label">ID</div>
-          <div class="detail-value"><span class="code">{{.Cert.ID}}</span></div>
-
           <div class="detail-label">Common Name</div>
           <div class="detail-value">
             {{if .Cert.CommonName}}{{.Cert.CommonName}}{{else}}<span class="muted">(none)</span>{{end}}
-          </div>
-
-          <div class="detail-label">Description</div>
-          <div class="detail-value">
-            {{if .Cert.Description}}{{.Cert.Description}}{{else}}<span class="muted">(none)</span>{{end}}
           </div>
 
           <div class="detail-label">Issuer</div>
@@ -447,37 +411,20 @@
             {{if .Cert.IssuerCommonName}}{{.Cert.IssuerCommonName}}{{else}}<span class="muted">(none)</span>{{end}}
           </div>
 
-          <div class="detail-label">Key Type</div>
-          <div class="detail-value">{{.Cert.KeyType}}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">Validity</div>
-      <div class="panel-body">
-        <div class="detail-grid">
           <div class="detail-label">Not Before</div>
           <div class="detail-value">{{.Cert.NotBefore.Format "2006-01-02 15:04:05 MST"}}</div>
 
           <div class="detail-label">Not After</div>
           <div class="detail-value">{{.Cert.NotAfter.Format "2006-01-02 15:04:05 MST"}}</div>
 
-          <div class="detail-label">Expires In</div>
-          <div class="detail-value">{{.Cert.ExpiresIn}}</div>
+          <div class="detail-label">Key Type</div>
+          <div class="detail-value">{{.Cert.KeyType}}</div>
 
-          <div class="detail-label">Status</div>
+          <div class="detail-label">Is CA</div>
           <div class="detail-value">
-            <span class="status status-{{.Cert.Status}}">{{.Cert.ValidityText}}</span>
+            {{if ne .Cert.Role "leaf"}}Yes{{else}}<span class="muted">No</span>{{end}}
           </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="panel">
-      <div class="panel-header">Names</div>
-      <div class="panel-body">
-        <div class="detail-grid">
           <div class="detail-label">DNS SANs</div>
           <div class="detail-value">
             {{if .Cert.DNSSANs}}
@@ -490,6 +437,7 @@
               <span class="muted">(none)</span>
             {{end}}
           </div>
+
           <div class="detail-label">IP SANs</div>
           <div class="detail-value">
             {{if .Cert.IPSANs}}
@@ -502,30 +450,8 @@
               <span class="muted">(none)</span>
             {{end}}
           </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="panel">
-      <div class="panel-header">Certificate Chain</div>
-      <div class="chain">
-        {{range $index, $link := .Cert.Chain}}
-          {{if gt $index 0}}
-            <span class="chain-arrow">↓</span>
-          {{end}}
-          <a class="chain-item" href="/cert/{{$link.ID}}">
-            <span>{{if $link.CommonName}}{{$link.CommonName}}{{else}}{{$link.ID}}{{end}}</span>
-            <span class="chain-role">{{$link.Role}}</span>
-          </a>
-        {{end}}
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">Key Identifiers</div>
-      <div class="panel-body">
-        <div class="detail-grid">
-          <div class="detail-label">Subject Key Identifier</div>
+          <div class="detail-label">Subject Key ID</div>
           <div class="detail-value">
             {{if .Cert.SubjectKeyID}}
               <span class="code">{{.Cert.SubjectKeyID}}</span>
@@ -534,7 +460,7 @@
             {{end}}
           </div>
 
-          <div class="detail-label">Authority Key Identifier</div>
+          <div class="detail-label">Authority Key ID</div>
           <div class="detail-value">
             {{if .Cert.AuthorityKeyID}}
               <span class="code">{{.Cert.AuthorityKeyID}}</span>
@@ -542,6 +468,69 @@
               <span class="muted">(none)</span>
             {{end}}
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-cols">
+      <div>
+        <div class="panel">
+          <div class="panel-header">EZ-CERT</div>
+          <div class="panel-body">
+            <div class="detail-grid">
+              <div class="detail-label">ID</div>
+              <div class="detail-value"><span class="code">{{.Cert.ID}}</span></div>
+
+              <div class="detail-label">Description</div>
+              <div class="detail-value">
+                {{if .Cert.Description}}{{.Cert.Description}}{{else}}<span class="muted">(none)</span>{{end}}
+              </div>
+
+              <div class="detail-label">Role</div>
+              <div class="detail-value"><span class="role role-{{.Cert.Role}}">{{.Cert.Role}}</span></div>
+
+              <div class="detail-label">Key Stored</div>
+              <div class="detail-value">
+                {{if .Cert.HasPrivateKey}}Yes{{else}}<span class="muted">No</span>{{end}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="panel-header">Certificate Chain</div>
+          <div class="chain">
+            {{range $index, $link := .Cert.Chain}}
+              {{if gt $index 0}}
+                <span class="chain-arrow">↓</span>
+              {{end}}
+              {{if eq $link.ID $.Cert.ID}}
+                <div class="chain-item chain-item-current">
+                  <span>{{if $link.CommonName}}{{$link.CommonName}}{{else}}{{$link.ID}}{{end}}</span>
+                  <span class="chain-role chain-role-{{$link.Role}}">{{$link.Role}}</span>
+                </div>
+              {{else}}
+                <a class="chain-item" href="/cert/{{$link.ID}}">
+                  <span>{{if $link.CommonName}}{{$link.CommonName}}{{else}}{{$link.ID}}{{end}}</span>
+                  <span class="chain-role chain-role-{{$link.Role}}">{{$link.Role}}</span>
+                </a>
+              {{end}}
+            {{end}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Export</div>
+      <div class="panel-body">
+        <div style="padding: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <a class="button button-secondary" href="/cert/{{.Cert.ID}}/export/cert">Download Cert</a>
+          <a class="button button-secondary" href="/cert/{{.Cert.ID}}/export/bundle">Download Bundle</a>
+          {{if .Cert.HasPrivateKey}}
+            <a class="button button-secondary" href="/cert/{{.Cert.ID}}/export/key">Download Key</a>
+          {{end}}
         </div>
       </div>
     </div>
@@ -583,7 +572,7 @@
     {{end}}
 
     <div class="panel">
-      <div class="panel-header">Delete Certificate</div>
+      <div class="panel-header">Danger Zone</div>
       <div class="panel-body">
         <div style="padding: 18px;">
           {{if .Cert.HasChildren}}
